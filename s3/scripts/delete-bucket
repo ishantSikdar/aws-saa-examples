@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+echo "> delete-bucket"
+
+# check for bucket name
+if [ -z "$1" ]; then
+  echo "Bucket name is required, eg. my-bucket-name"
+  exit 1
+fi
+
+BUCKET_NAME="$1"
+
+aws s3api delete-bucket \
+  --bucket "$BUCKET_NAME" \
+  --output text
