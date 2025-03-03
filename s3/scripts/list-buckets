@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+echo "> list-buckets"
+
+# https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3api/list-buckets.html
+CMD="aws s3api list-buckets \
+  --query Buckets[].Name"
+
+echo
+eval "$CMD"

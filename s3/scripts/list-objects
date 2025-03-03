@@ -1,1 +1,18 @@
 #!/usr/bin/env bash
+echo "> list-objects"
+
+# check for bucket name
+if [ -z "$1" ]; then
+  echo "Bucket name is required, eg. my-bucket-name"
+  exit 1
+fi
+
+BUCKET_NAME="$1"
+
+# https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3api/list-objects-v2.html
+CMD="aws s3api list-objects-v2 \
+  --bucket \"$BUCKET_NAME\" \
+  --query Contents[].Key"
+
+echo
+eval "$CMD"

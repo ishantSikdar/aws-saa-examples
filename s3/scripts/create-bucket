@@ -9,8 +9,15 @@ fi
 
 BUCKET_NAME="$1"
 
-aws s3api create-bucket \
-  --bucket "$BUCKET_NAME" \
+# https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3api/create-bucket.html
+CMD="aws s3api create-bucket \
+  --bucket \"$BUCKET_NAME\" \
   --create-bucket-configuration="LocationConstraint=ap-south-1" \
   --query Location \
-  --output text
+  --output text"
+
+echo
+
+if eval "$CMD"; then
+  echo "Created bucket: $BUCKET_NAME"
+fi

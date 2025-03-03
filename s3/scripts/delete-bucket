@@ -9,6 +9,13 @@ fi
 
 BUCKET_NAME="$1"
 
-aws s3api delete-bucket \
-  --bucket "$BUCKET_NAME" \
-  --output text
+# https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3api/delete-bucket.html
+CMD="aws s3api delete-bucket \
+  --bucket \"$BUCKET_NAME\" \
+  --output text"
+
+echo
+
+if eval "$CMD"; then
+  echo "Deleted bucket: $BUCKET_NAME"
+fi
