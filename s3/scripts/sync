@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+echo "> sync-objects"
+
+# check for bucket name
+if [ -z "$1" ]; then
+  echo "Bucket name is required, eg. my-bucket-name"
+  exit 1
+fi
+
+BUCKET_NAME="$1"
+TMP="./temp/"
+
+# https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/sync.html
+CMD="aws s3 sync $TMP s3://$BUCKET_NAME"
+
+echo
+
+if eval "$CMD"; then
+  echo "Synced $TMP objects to $BUCKET_NAME"
+fi

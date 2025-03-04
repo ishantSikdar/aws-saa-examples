@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+echo "> get-object"
+
+# check for bucket name
+if [ -z "$1" ]; then
+  echo "Bucket name is required, eg. my-bucket-name"
+  exit 1
+fi
+
+# check for object keys
+if [ -z "$2" ]; then
+  echo "Object key is required, eg. object_key"
+  exit 1
+fi
+
+# check for object path
+if [ -z "$3" ]; then
+  echo "Object path is required"
+  exit 1
+fi
+
+BUCKET_NAME="$1"
+OBJECT_KEY="$2"
+OBJECT_PATH="$3"
+
+mkdir -p "$OBJECT_PATH" # Create the directory if it doesn't exist
+
+# https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3api/get-object.html
+CMD="aws s3api get-object \
+  --bucket \"$BUCKET_NAME\" \
+  --key \"$OBJECT_KEY\" \
+  \"$OBJECT_PATH/$OBJECT_KEY\""
+echo
+
+if eval "$CMD"; then
+  echo "Saved $OBJECT_KEY to $OBJECT_PATH"
+fi

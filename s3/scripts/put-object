@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+echo "> put-object"
+
+# check for object path
+if [ -z "$1" ]; then
+  echo "Object path is required"
+  exit 1
+fi
+
+# check if object is a file
+if [ ! -f "$1" ]; then
+  echo "Error: File '$1' does not exist or is not a file"
+  exit 1
+fi
+
+# check for bucket name
+if [ -z "$2" ]; then
+  echo "Bucket name is required, eg. my-bucket-name"
+  exit 1
+fi
+
+OBJECT_PATH="$1"
+BUCKET_NAME="$2"
+OBJECT_KEY=$(basename "$OBJECT_PATH")
+
+# https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3api/put-object.html
+CMD="aws s3api put-object \
+  --bucket \"$BUCKET_NAME\" \
+  --key \"$OBJECT_KEY\" \
+  --body \"$OBJECT_PATH\""
+
+echo
+
+if eval "$CMD"; then
+  echo "Uploaded $OBJECT_PATH to $BUCKET_NAME"
+fi
