@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+echo "> delete-all-objects"
+
+# check for bucket name
+if [ -z "$1" ]; then
+  echo "Bucket name is required, eg. my-bucket-name"
+  exit 1
+fi
+
+BUCKET_NAME="$1"
+TMP="./temp/"
+
+mkdir -p "$TMP"
+
+# https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3api/list-objects-v2.html
+aws s3api list-objects-v2 \
+  --bucket $BUCKET_NAME \
+  --query Contents[].Key |
+  jq -n '{Objects: [inputs | .[] | {Key: .}]}' >$TMP/delete_objects.json
+
+# Check if the JSON file is empty (no objects)
+if [ ! -s "$TMP/delete_objects.json" ]; then
+  echo "No objects found in $BUCKET_NAME"
+  exit 0
+fi
+
+# https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3api/delete-objects.html
+CMD="aws s3api delete-objects \
+  --bucket \"$BUCKET_NAME\" \
+  --delete \"file://$TMP/delete_objects.json\""
+
+echo
+
+if bash -c "$CMD"; then
+  echo "Deleted all objects in $BUCKET_NAME"
+fi
+
+rm -f "$TMP/delete_objects.json"
