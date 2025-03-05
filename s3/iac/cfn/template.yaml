@@ -1,0 +1,9 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: A simple S3 bucket
+Resources:
+  # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-s3-bucket.html
+  S3Bucket:
+    Type: "AWS::S3::Bucket"
+    # DeletionPolicy: Retain
+    # Properties:
+    #   BucketName: my-shiny-bucket423434

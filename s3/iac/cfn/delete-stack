@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+echo "> delete-stack"
+
+STACK_NAME="cfn-s3-simple"
+
+# https://awscli.amazonaws.com/v2/documentation/api/latest/reference/cloudformation/delete-stack.html
+aws cloudformation delete-stack \
+  --stack-name $STACK_NAME \
+  --region ap-south-1
