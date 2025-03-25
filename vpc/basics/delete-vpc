@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+
+set -e
+
+# Parse named arguments
+while [[ "$#" -gt 0 ]]; do
+  case "$1" in
+  --vpc)
+    VPC_ID="$2"
+    shift 2
+    ;;
+  --igw)
+    IGW_ID="$2"
+    shift 2
+    ;;
+  --subnet)
+    SUB_ID="$2"
+    shift 2
+    ;;
+  --rt)
+    RT_ID="$2"
+    shift 2
+    ;;
+  --as)
+    AS_ID="$2"
+    shift 2
+    ;;
+  *)
+    echo "Unknown parameter: $1"
+    exit 1
+    ;;
+  esac
+done
+
+# Validate required parameters
+if [[ -z "$VPC_ID" || -z "$IGW_ID" || -z "$SUB_ID" || -z "$RT_ID" || -z "$AS_ID" ]]; then
+  echo "Usage: $0 --vpc <VPC_ID> --igw <IGW_ID> --sub <SUB_ID> --rt <RT_ID> --as <AS_ID>"
+  exit 1
+fi
+
+# Export variables
+export VPC_ID IGW_ID SUB_ID RT_ID AS_ID
+
+# delete route of IGW
+## https://awscli.amazonaws.com/v2/documentation/api/latest/reference/ec2/delete-route.html
+aws ec2 delete-route \
+  --route-table-id "$RT_ID" \
+  --destination-cidr-block 0.0.0.0/0
+
+echo "Route to 0.0.0.0/0 deleted from table: $RT_ID"
+
+# dissassociate subnet from RT
+## https://awscli.amazonaws.com/v2/documentation/api/latest/reference/ec2/disassociate-route-table.html
+aws ec2 disassociate-route-table \
+  --association-id "$AS_ID"
+
+echo "Dissassociated subnet association: $AS_ID"
+
+# delete subnet
+## https://awscli.amazonaws.com/v2/documentation/api/latest/reference/ec2/delete-subnet.html
+aws ec2 delete-subnet \
+  --subnet-id "$SUB_ID"
+
+echo "Deleted subnet: $SUB_ID"
+
+# detach internet gateway from vpc
+## https://awscli.amazonaws.com/v2/documentation/api/latest/reference/ec2/detach-internet-gateway.html
+aws ec2 detach-internet-gateway \
+  --internet-gateway-id "$IGW_ID" \
+  --vpc-id "$VPC_ID"
+
+echo "Detached IGW: $IGW_ID from VPC: $VPC_ID"
+
+# delete IGW
+## https://awscli.amazonaws.com/v2/documentation/api/latest/reference/ec2/delete-internet-gateway.html
+aws ec2 delete-internet-gateway \
+  --internet-gateway-id "$IGW_ID"
+
+echo "Deleted IGW: $IGW_ID"
+
+# delete vpc
+## https://awscli.amazonaws.com/v2/documentation/api/latest/reference/ec2/delete-vpc.html
+aws ec2 delete-vpc --vpc-id "$VPC_ID"
+
+echo "Deleted VPC: $VPC_ID"

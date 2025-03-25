@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+
+set -e
+
+# create a vpc
+## https://awscli.amazonaws.com/v2/documentation/api/latest/reference/ec2/create-vpc.html
+VPC_ID=$(
+  aws ec2 create-vpc \
+    --cidr-block "172.1.0.0/16" \
+    --tag-specifications "ResourceType=vpc,Tags=[{Key=Name,Value=my-demo-vpc}]" \
+    --region "ap-south-1" \
+    --query Vpc.VpcId \
+    --output text
+)
+
+echo "Created VPC: $VPC_ID"
+
+# enable dns hostname
+## https://awscli.amazonaws.com/v2/documentation/api/latest/reference/ec2/modify-vpc-attribute.html
+aws ec2 modify-vpc-attribute --vpc-id "$VPC_ID" \
+  --enable-dns-hostnames "{\"Value\":true}"
+
+echo "Enabled DNS hostnames for VPC: $VPC_ID"
+
+# get get route table of vpc
+## https://awscli.amazonaws.com/v2/documentation/api/latest/reference/ec2/describe-route-tables.html
+RT_ID=$(
+  aws ec2 describe-route-tables \
+    --filters "Name=vpc-id,Values=$VPC_ID" "Name=association.main,Values=true" \
+    --query "RouteTables[0].RouteTableId" \
+    --output text
+)
+
+echo "Fetched Route table: $RT_ID"
+
+# create an IGW
+## https://awscli.amazonaws.com/v2/documentation/api/latest/reference/ec2/create-internet-gateway.html
+IGW_ID=$(
+  aws ec2 create-internet-gateway \
+    --query InternetGateway.InternetGatewayId \
+    --output text
+)
+
+echo "Created IGW: $IGW_ID"
+
+# attach the IGW
+## https://awscli.amazonaws.com/v2/documentation/api/latest/reference/ec2/attach-internet-gateway.html
+aws ec2 attach-internet-gateway \
+  --internet-gateway-id "$IGW_ID" \
+  --vpc-id "$VPC_ID"
+
+echo "Attach IGW: $IGW_ID to VPC: $VPC_ID"
+
+# create a subnet
+## https://awscli.amazonaws.com/v2/documentation/api/latest/reference/ec2/create-subnet.html
+SUB_ID=$(
+  aws ec2 create-subnet \
+    --vpc-id "$VPC_ID" \
+    --cidr-block "172.1.0.0/20" \
+    --query Subnet.SubnetId \
+    --output text
+)
+
+echo "Created subnet: $SUB_ID"
+
+# auto assign IPv4
+## https://awscli.amazonaws.com/v2/documentation/api/latest/reference/ec2/modify-subnet-attribute.html
+
+aws ec2 modify-subnet-attribute --subnet-id "$SUB_ID" \
+  --map-public-ip-on-launch
+
+echo "Auto assign IPv4 address to subnet: $SUB_ID"
+
+# explicitly attach the subnet in RT
+## https://awscli.amazonaws.com/v2/documentation/api/latest/reference/ec2/associate-route-table.html
+AS_ID=$(
+  aws ec2 associate-route-table \
+    --route-table-id "$RT_ID" \
+    --subnet-id "$SUB_ID" \
+    --query AssociationId \
+    --output text
+)
+
+echo "Subnet: $SUB_ID associated to Route table: $RT_ID of ID: $AS_ID"
+
+# new route for route table to IGW
+## https://awscli.amazonaws.com/v2/documentation/api/latest/reference/ec2/create-route.html
+
+aws ec2 create-route \
+  --route-table-id "$RT_ID" \
+  --destination-cidr-block "0.0.0.0/0" \
+  --gateway-id "$IGW_ID"
+
+echo "Create new route for RT: $RT_ID to IGW: $IGW_ID"
