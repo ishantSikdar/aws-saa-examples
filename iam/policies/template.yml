@@ -1,0 +1,49 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Types of policies demo (managed, customer and inline)
+
+Resources:
+  # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-user.html
+  MyUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: "my-cool-user"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/job-function/ViewOnlyAccess
+      Policies:
+        - PolicyName: MyInlinePolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: IamListAccess
+                Effect: Allow
+                Action:
+                  - "iam:ListRoles"
+                  - "iam:ListUsers"
+                Resource: "*"
+
+  MyCustomerManagedPolicy:
+    # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-iam-user-policy.html
+    Type: "AWS::IAM::Policy"
+    Properties:
+      PolicyName: MyCustomerManagedPolicy
+      Users:
+          - !Ref MyUser
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: "ec2:*"
+            Resource: "*"
+        
+  MySecondInlinePolicy:
+    # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-userpolicy.html
+    Type: "AWS::IAM::UserPolicy"
+    Properties:
+      PolicyName: MySecondInlinePolicy
+      UserName: !Ref MyUser
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: "s3:*"
+            Resource: "*"

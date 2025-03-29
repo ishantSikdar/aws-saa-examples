@@ -1,0 +1,6 @@
+Version: "2012-10-17"
+Statement:
+  - Sid: "MyS3PolicyFun"
+    Effect: "Allow"
+    Action: "s3:ListBucket"
+    Resource: "*"

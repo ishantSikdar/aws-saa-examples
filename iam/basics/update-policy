@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+# https://awscli.amazonaws.com/v2/documentation/api/latest/reference/iam/create-policy-version.html
+
+aws iam create-policy-version \
+  --policy-arn arn:aws:iam::675246323040:policy/my-fun-policcyy \
+  --policy-document "$(yq -o json policy.yml)" \
+  --set-as-default
